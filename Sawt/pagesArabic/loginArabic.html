@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل دخول لصوت</title>
+    <link rel="stylesheet" href="/assetsFolder/allStyles/login.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <nav>
+        <div class="row">
+            <div class="logo-container">
+                <img src="/assetsFolder/allPictures/logo.png" />
+                <a href="" class="main-title">صوت</a>
+            </div>
+
+            <div class="nav-list">
+                <ul class="list">
+                    <li class="list-item"><a href="/indexArabic">رجوع</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="login-box">
+            <h2 class="heading">
+                <p>تسجيل الدخول</p>
+            </h2>
+
+            <div class="social-icons">
+                <i class="fab fa-google"></i>
+                <i class="fab fa-facebook"></i>
+                <i class="fab fa-linkedin"></i>
+            </div>
+
+            <form class="login-group" method="POST" action="/loginArabic">
+                <input type="email" id="email" name="email" placeholder="البريد الإلكتروني" style="direction: rtl" required />
+                <input type="password" id="password" name="password" placeholder="كلمة المرور" style="direction: rtl" required />
+                <button type="submit" class="login-button" id="login-button">دخول</button>
+                <p>ليس لديك حساب ؟ <a href="/registrationArabic">أنشيء حساب من هنا</a></p>
+            </form>
+        </div>
+
+        <div class="welcome-box">
+            <img src="/assetsFolder/allPictures/login.png" />
+            <h3>مرحباً بك</h3>
+        </div>
+    </div>
+</body>
+
+</html>

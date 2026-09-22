@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعدادات حساب المستخدم في صوت</title>
+    <link rel="stylesheet" href="/assetsFolder/allStyles/settings.css" />
+</head>
+
+<body>
+    <nav>
+        <div class="row">
+            <div class="logo-container">
+                <img src="/assetsFolder/allPictures/logo.png" />
+                <a href="" class="main-title">صوت</a>
+            </div>
+
+            <div class="nav-list">
+                <ul class="list">
+                    <li class="list-item"><a href="/uploadArabic">تحميل</a></li>
+                    <li class="list-item"><a href="/dashboardArabic">لوحة المقاطع</a></li>
+                    <li class="list-item"><a href="/settingsArabic">الإعدادات</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="settings-box">
+            <h2 class="heading">
+                <p>إعدادات الحساب</p>
+            </h2>
+
+            <form id="settings-form" class="settings-group">
+                <input type="text" id="name" name="name" value="{{ user.name }}" required />
+                <input type="email" id="email" name="email" value="{{ user.email }}" required />
+                <input type="password" id="password" name="password" placeholder="Password (leave empty to keep current)" />
+                <button type="submit" class="save-change-button">حفظ التغييرات</button>
+                <p>هل ترغب في تسجيل الخروج ؟ <a href="/logoutArabic">نعم</a></p>
+                <p class="status-message" id="status-message"></p>
+            </form>
+        </div>
+
+        <div class="welcome-box">
+            <img src="/assetsFolder/allPictures/settings.png" />
+            <h3>مرحباً بك</h3>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("settings-form").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const response = await fetch("/settingsArabic", {
+                method: "POST",
+                body: formData
+            });
+
+            const statusMsg = document.getElementById("status-message");
+
+            if (response.ok) {
+                statusMsg.textContent = "✅ تم حفظ التغييرات بنجاح";
+            } else {
+                statusMsg.textContent = "❌ حدث خطأ أثناء الحفظ";
+            }
+
+            statusMsg.classList.add("show");
+        });
+    </script>
+</body>
+
+</html>

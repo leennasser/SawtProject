@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sawt Dashboard</title>
+    <link rel="stylesheet" href="/assetsFolder/allStyles/dashboard.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <nav>
+        <div class="row">
+            <div class="logo-container">
+                <img src="/assetsFolder/allPictures/logo.png" alt="Sawt Logo" />
+                <a href="" class="main-title">Sawt</a>
+            </div>
+
+            <div class="nav-list">
+                <ul class="list">
+                    <li class="list-item"><a href="/uploadEnglish">Upload</a></li>
+                    <li class="list-item"><a href="/dashboardEnglish">Dashboard</a></li>
+                    <li class="list-item"><a href="/settingsEnglish">Settings</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="clip-list-container">
+            {% if clips_by_podcast %}
+            {% for podcast_name, clips in clips_by_podcast.items() %}
+            <div class="clip-group">
+                <h3 class="podcast-title">{{ podcast_name }}</h3>
+                <ul class="clip-list">
+                    {% for clip_data in clips %}
+                    {% set podcast_dir = clip_data.clip.split('/')[0] %}
+                    {% set filename = clip_data.clip.split('/')[-1] %}
+                    <li class="clip-item" data-filename="{{ filename }}"
+                        onclick="playClip('{{ podcast_dir }}', '{{ filename }}', `{{ clip_data.summary | escape }}`, '{{ clip_data.type }}')">
+                        🎧 {{ filename.replace('.wav', '').replace('.mp3', '').replace('.mp4', '') }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="status-message">🎧 No Clips Available</p>
+            {% endif %}
+        </div>
+
+        <div class="clip-placeholder-container">
+            <h3>Selected Clip</h3>
+            <div class="clip-placeholder" id="clip-placeholder">
+                <p class="status-message">🎧 Click Clip To View</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function playClip(podcastDir, filename, summary, type) {
+            const placeholder = document.getElementById("clip-placeholder");
+            let mediaSrc = "";
+            let mediaElement = "";
+
+            if (type === "video") {
+                mediaSrc = `/videoClips/${podcastDir}/${filename}`;
+                mediaElement = `
+            <video id="clip-player" controls width="400" preload="metadata">
+                <source src="${mediaSrc}" type="video/mp4" />
+            </video>
+        `;
+            } else {
+                mediaSrc = `/audioClips/${podcastDir}/${filename}`;
+                let audioType = "audio/wav";
+                if (filename.toLowerCase().endsWith(".mp3")) {
+                    audioType = "audio/mpeg";
+                }
+                mediaElement = `
+            <audio id="clip-player" controls preload="metadata">
+                <source src="${mediaSrc}" type="${audioType}" />
+            </audio>
+        `;
+            }
+
+            placeholder.innerHTML = `
+        <p class="label-for-clip">${summary}</p>
+        ${mediaElement}
+        <div class="clip-actions">
+            <button class="download-button" data-action="download" data-dir="${podcastDir}" data-filename="${filename}">Download</button>
+            <button class="share-button" data-action="share" data-dir="${podcastDir}" data-filename="${filename}">Share</button>
+            <button class="delete-button" data-action="delete" data-dir="${podcastDir}" data-filename="${filename}">Delete</button>
+        </div>
+    `;
+
+            attachButtonListeners();
+        }
+
+        function attachButtonListeners() {
+            document.querySelectorAll('.download-button, .share-button, .delete-button').forEach(button => {
+                button.addEventListener('click', async function (event) {
+                    event.stopPropagation();
+                    const action = this.dataset.action;
+                    const fileName = this.dataset.filename;
+                    const dir = this.dataset.dir;
+
+                    let clipFolder = "audioClips";
+                    if (fileName.endsWith(".mp4")) {
+                        clipFolder = "videoClips";
+                    }
+
+                    const clipURL = `/${clipFolder}/${dir}/${fileName}`;
+
+                    if (action === 'download') {
+                        const a = document.createElement('a');
+                        a.href = clipURL;
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    }
+
+                    else if (action === 'share') {
+                        const fullUrl = `${window.location.origin}${clipURL}`;
+                        if (navigator.share) {
+                            try {
+                                await navigator.share({
+                                    title: 'Check out this podcast clip',
+                                    text: 'Listen to or watch this highlight',
+                                    url: fullUrl
+                                });
+                            } catch (err) {
+                                Swal.fire({
+                                    title: '<p style="color: #777;">Error</p>',
+                                    html: '<p style="color: #777;">Error Sharing</p>',
+                                    icon: 'error',
+                                    iconColor: '#d33',
+                                    confirmButtonColor: '#80563c',
+                                });
+                            }
+                        } else {
+                            const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fullUrl)}`;
+                            window.open(facebookUrl, '_blank');
+                        }
+                    }
+
+                    else if (action === 'delete') {
+                        Swal.fire({
+                            title: '<p style="color: #777;">Are You Sure ?</p>',
+                            html: '<p style="color: #777;">You Will Not Able To Revert This</p>',
+                            icon: 'warning',
+                            iconColor: '#d33',
+                            showCancelButton: true,
+                            confirmButtonColor: '#80563c',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Yes, Delete',
+                            cancelButtonText: 'No, Cancel',
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                fetch(`/deleteClip/${dir}/${fileName}`, {
+                                    method: "DELETE"
+                                })
+                                    .then(response => {
+                                        if (response.ok) {
+                                            Swal.fire({
+                                                title: '<p style="color: #777;">Deleted</p>',
+                                                html: '<p style="color: #777;">Your Clip Deleted Successfully</p>',
+                                                icon: 'success',
+                                                iconColor: '#6fa880',
+                                                confirmButtonColor: '#80563c',
+                                            });
+                                            document.getElementById("clip-placeholder").innerHTML = '<p class="status-message">🎧 Click Clip To View</p>';
+                                            const clipElement = document.querySelector(`li[data-filename="${fileName}"]`);
+                                            if (clipElement) {
+                                                clipElement.remove();
+                                            }
+                                        } else {
+                                            throw new Error();
+                                        }
+                                    })
+                                    .catch(() => {
+                                        Swal.fire({
+                                            title: '<p style="color: #777;">Error</p>',
+                                            html: '<p style="color: #777;">Error Deleting</p>',
+                                            icon: 'error',
+                                            iconColor: '#d33',
+                                            confirmButtonColor: '#80563c',
+                                        });
+                                    });
+                            }
+                        });
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+
+</html>

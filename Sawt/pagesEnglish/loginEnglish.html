@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sawt Login</title>
+    <link rel="stylesheet" href="/assetsFolder/allStyles/login.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <nav>
+        <div class="row">
+            <div class="logo-container">
+                <img src="/assetsFolder/allPictures/logo.png" />
+                <a href="" class="main-title">Sawt</a>
+            </div>
+
+            <div class="nav-list">
+                <ul class="list">
+                    <li class="list-item"><a href="/indexEnglish">Back</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="login-box">
+            <h2 class="heading">
+                <span>L</span><span>O</span><span>G</span><span>I</span><span>N</span>
+            </h2>
+
+            <div class="social-icons">
+                <i class="fab fa-google"></i>
+                <i class="fab fa-facebook"></i>
+                <i class="fab fa-linkedin"></i>
+            </div>
+
+            <form class="login-group" method="POST" action="/loginEnglish">
+                <input type="email" id="email" name="email" placeholder="Email" required />
+                <input type="password" id="password" name="password" placeholder="Password" required />
+                <button type="submit" class="login-button" id="login-button">Enter</button>
+                <p>Don't have an account ? <a href="/registrationEnglish">Sign up here</a></p>
+            </form>
+        </div>
+
+        <div class="welcome-box">
+            <img src="/assetsFolder/allPictures/login.png" />
+            <h3>Welcome</h3>
+        </div>
+    </div>
+</body>
+
+</html>

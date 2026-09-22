@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحميل البودكاست لصوت</title>
+    <link rel="stylesheet" href="/assetsFolder/allStyles/upload.css" />
+</head>
+
+<body>
+    <nav>
+        <div class="row">
+            <div class="logo-container">
+                <img src="/assetsFolder/allPictures/logo.png" />
+                <a href="" class="main-title">صوت</a>
+            </div>
+
+            <div class="nav-list">
+                <ul class="list">
+                    <li class="list-item"><a href="/uploadArabic">تحميل</a></li>
+                    <li class="list-item"><a href="/dashboardArabic">لوحة المقاطع</a></li>
+                    <li class="list-item"><a href="/settingsArabic">الإعدادات</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="upload-box">
+            <h2 class="heading">
+                <p>تحميل البودكاست</p>
+            </h2>
+
+            <div class="upload-group" id="upload-form">
+                <label style="direction: rtl; text-align: right;">اختر نوع البودكاست</label>
+                <select id="podcast-type" class="podcast-type">
+                    <option value="audio">Audio</option>
+                    <option value="video">Video</option>
+                </select>
+
+                <label style="direction: rtl; text-align: right;">قم بتحميل البودكاست</label>
+                <input type="file" class="podcast-file-input" id="podcast-file-input" accept="audio/*,video/*">
+
+                <button type="button" class="start-process-button" id="start-process-button">هيا نبدأ</button>
+
+                <div class="progress-container" id="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+
+                <p class="status-message" id="status-message"></p>
+            </div>
+        </div>
+
+        <div class="welcome-box">
+            <img src="/assetsFolder/allPictures/upload.png" />
+            <h3>هيا نبدأ</h3>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function () {
+            const fileInput = document.getElementById('podcast-file-input');
+            const podcastTypeSelect = document.getElementById('podcast-type');
+            const statusMessage = document.getElementById('status-message');
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+
+            podcastTypeSelect.addEventListener('change', function () {
+                const podcastType = podcastTypeSelect.value;
+                if (podcastType === "audio") {
+                    fileInput.accept = "audio/mp3";
+                } else if (podcastType === "video") {
+                    fileInput.accept = "video/mp4";
+                }
+            });
+            podcastTypeSelect.dispatchEvent(new Event('change'));
+
+            document.getElementById('start-process-button').addEventListener('click', async function (e) {
+                e.preventDefault();
+
+                if (!fileInput.files.length) {
+                    statusMessage.textContent = " ❗الرجاء اختيار ملف قبل البدء";
+                    return;
+                }
+
+                const file = fileInput.files[0];
+                const fileType = file.type;
+                const podcastType = podcastTypeSelect.value;
+
+                if (podcastType === "audio" && !fileType.startsWith("audio/")) {
+                    statusMessage.textContent = "❌ الرجاء اختيار ملف صوتي صالح";
+                    return;
+                }
+                if (podcastType === "video" && !fileType.startsWith("video/")) {
+                    statusMessage.textContent = "❌ الرجاء اختيار ملف فيديو صالح";
+                    return;
+                }
+
+                progressContainer.style.display = "block";
+                progressBar.style.width = "0%";
+                statusMessage.textContent = "⌛ الرجاء الانتظار";
+
+                let width = 0;
+                const progressInterval = setInterval(() => {
+                    if (width < 90) {
+                        width += 5;
+                        progressBar.style.width = width + "%";
+                    }
+                }, 300);
+
+                const formData = new FormData();
+                formData.append('podcast-file-input', file);
+                formData.append('podcast-type', podcastType);
+
+                try {
+                    const response = await fetch('/uploadArabic', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    clearInterval(progressInterval);
+                    progressBar.style.width = "100%";
+
+                    const result = await response.text();
+                    await new Promise(res => setTimeout(res, 500));
+
+                    progressContainer.style.display = "none";
+
+                    if (response.ok) {
+                        if (result.includes("Processing complete")) {
+                            statusMessage.textContent = "✅ تمت المعالجة بنجاح - انتقل إلى لوحة المقاطع";
+                        } else {
+                            statusMessage.textContent = "⚠️ لم يتم العثور على مقاطع مهمة";
+                        }
+                    } else {
+                        if (result.includes("Already been uploaded")) {
+                            statusMessage.textContent = "⚠️ تم رفع هذا البودكاست مسبقاً";
+                        } else if (result.includes("Arabic podcasts only")) {
+                            statusMessage.textContent = "❌ يدعم فقط البودكاست العربي";
+                        } else {
+                            statusMessage.textContent = result;
+                        }
+                    }
+                } catch (error) {
+                    clearInterval(progressInterval);
+                    progressContainer.style.display = "none";
+                    statusMessage.textContent = "❌ خطأ في الاتصال";
+                    console.error(error);
+                }
+            });
+        };
+    </script>
+</body>
+
+</html>
